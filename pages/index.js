@@ -1,48 +1,40 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Head from "next/head";
 
-// Custom Hook untuk mendeteksi mode desktop
-const useIsDesktop = (breakpoint = 1024) => {
-  const [isDesktop, setIsDesktop] = useState(false);
+export default function Home() {
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Fungsi ini akan dijalankan hanya di sisi client
-    const handleResize = () => {
-      setIsDesktop(window.innerWidth > breakpoint);
+    // Logika deteksi yang akurat: memeriksa user agent dan lebar layar.
+    const checkIsMobile = () => {
+      // Mengembalikan true jika user agent mengandung "Mobi" atau "Android", ATAU jika lebar window < 1024px.
+      const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 1024;
+      setIsMobile(isMobileDevice);
     };
 
-    // Panggil sekali saat komponen dimuat
-    handleResize();
+    // Jalankan pengecekan saat komponen pertama kali dimuat di browser.
+    checkIsMobile();
 
-    // Tambahkan event listener untuk memantau perubahan ukuran window
-    window.addEventListener("resize", handleResize);
+    // Tambahkan listener untuk mengecek ulang jika ukuran window berubah.
+    window.addEventListener("resize", checkIsMobile);
 
-    // Hapus event listener saat komponen di-unmount
-    return () => window.removeEventListener("resize", handleResize);
-  }, [breakpoint]);
-
-  return isDesktop;
-};
-
-
-export default function Home() {
-  const isDesktop = useIsDesktop(); // Panggil hook di sini
+    // Hapus listener saat komponen tidak lagi digunakan untuk mencegah memory leak.
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
 
   // State untuk fungsionalitas inti
   const [text, setText] = useState("");
   const [result, setResult] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  // State untuk interaktivitas UI
   const [isButtonHovered, setButtonHovered] = useState(false);
 
   // Data dummy untuk leaderboard
   const [leaderboardData] = useState([
-    { rank: 1, name: "Andi Wijaya", detections: 142, avatar: "👨🏻‍💻" },
-    { rank: 2, name: "Siti Aminah", detections: 128, avatar: "👩🏻‍🔬" },
-    { rank: 3, name: "Budi Santoso", detections: 115, avatar: "👨🏻‍🚀" },
-    { rank: 4, name: "Dewi Lestari", detections: 98, avatar: "👩🏻‍🎨" },
-    { rank: 5, name: "Eko Prasetyo", detections: 76, avatar: "👨🏻‍🏫" },
+    { rank: 1, name: "User 1839", detections: 142, avatar: "👨🏻‍💻" },
+    { rank: 2, name: "User 2947", detections: 128, avatar: "👩🏻‍🔬" },
+    { rank: 3, name: "User 2373", detections: 115, avatar: "👨🏻‍🚀" },
+    { rank: 4, name: "User 8639", detections: 98, avatar: "👩🏻‍🎨" },
+    { rank: 5, name: "User 3638", detections: 76, avatar: "👨🏻‍🏫" },
   ]);
 
   const handleDetect = async () => {
@@ -52,8 +44,8 @@ export default function Home() {
     }
     setLoading(true);
     setResult([]);
-
     try {
+      // Simulasi API call (ganti dengan fetch asli Anda jika perlu)
       await new Promise(resolve => setTimeout(resolve, 1500));
       const mockResult = text.split('.').filter(s => s.trim() !== '').map((s, i) => ({
         no: i + 1,
@@ -62,7 +54,6 @@ export default function Home() {
         status: Math.random() > 0.4 ? "AI_GENERATED" : "HUMAN_WRITTEN",
       }));
       setResult(mockResult);
-
     } catch (err) {
       alert("Error: " + err.message);
     } finally {
@@ -83,15 +74,25 @@ export default function Home() {
     ::-webkit-scrollbar-thumb { background: ${colors.primary}; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: ${colors.primaryHover}; }
   `;
-
-  // Tampilan fallback jika bukan desktop
-  if (!isDesktop) {
+  
+  // Jika terdeteksi sebagai mobile, tampilkan halaman fallback.
+  if (isMobile) {
     return (
       <>
         <Head>
           <title>Mode Desktop Diperlukan</title>
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <style>{GlobalStyles}</style>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+          <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+          <style>{`
+            body { 
+              background-color: #121212; 
+              color: #e0e0e0; 
+              font-family: 'Poppins', sans-serif;
+              margin: 0;
+            }
+          `}</style>
         </Head>
         <div style={styles.mobileFallbackContainer}>
             <span style={styles.mobileFallbackIcon}>🖥️</span>
@@ -104,7 +105,7 @@ export default function Home() {
     );
   }
 
-  // Tampilan utama aplikasi jika desktop
+  // Jika bukan mobile, tampilkan aplikasi utama.
   return (
     <>
       <Head>
@@ -212,7 +213,6 @@ const colors = {
 };
 
 const styles = {
-  // Gaya untuk Tampilan Fallback Mobile
   mobileFallbackContainer: {
     display: 'flex',
     flexDirection: 'column',
@@ -221,7 +221,6 @@ const styles = {
     height: '100vh',
     textAlign: 'center',
     padding: '20px',
-    backgroundColor: colors.background,
   },
   mobileFallbackIcon: {
     fontSize: '5em',
@@ -238,8 +237,6 @@ const styles = {
     maxWidth: '400px',
     lineHeight: 1.5,
   },
-
-  // Gaya Aplikasi Utama (Desktop)
   container: {
     display: 'flex',
     flexDirection: 'row',
