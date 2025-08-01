@@ -28,7 +28,8 @@ export default function Home() {
     setResult([]);
 
     try {
-      // Simulasi API call (ganti dengan fetch asli Anda)
+      // Ganti bagian ini dengan fetch API asli Anda
+      // Simulasi API call untuk demonstrasi
       await new Promise(resolve => setTimeout(resolve, 1500));
       const mockResult = text.split('.').filter(s => s.trim() !== '').map((s, i) => ({
         no: i + 1,
@@ -37,17 +38,7 @@ export default function Home() {
         status: Math.random() > 0.4 ? "AI_GENERATED" : "HUMAN_WRITTEN",
       }));
       setResult(mockResult);
-      // Baris di bawah adalah kode asli Anda
-      /*
-      const res = await fetch("/api/detect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-      const data = await res.json();
-      if (data.success) setResult(data.result);
-      else alert("Gagal mendeteksi: " + data.message);
-      */
+
     } catch (err) {
       alert("Error: " + err.message);
     } finally {
@@ -58,8 +49,8 @@ export default function Home() {
   // Gaya Global (diterapkan melalui komponen Head)
   const GlobalStyles = `
     body {
-      background-color: ${styles.colors.background};
-      color: ${styles.colors.textPrimary};
+      background-color: ${colors.background};
+      color: ${colors.textPrimary};
       margin: 0;
       font-family: 'Poppins', sans-serif;
       overflow-x: hidden;
@@ -68,14 +59,14 @@ export default function Home() {
       width: 8px;
     }
     ::-webkit-scrollbar-track {
-      background: ${styles.colors.background};
+      background: ${colors.background};
     }
     ::-webkit-scrollbar-thumb {
-      background: ${styles.colors.primary};
+      background: ${colors.primary};
       border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: ${styles.colors.primaryHover};
+      background: ${colors.primaryHover};
     }
   `;
 
@@ -178,19 +169,22 @@ export default function Home() {
 
 // --- Styles Object ---
 
+// ✅ PERBAIKAN: Pisahkan 'colors' menjadi konstanta sendiri untuk menghindari ReferenceError
+const colors = {
+  background: '#121212',
+  surface: '#1e1e1e',
+  primary: '#bb86fc',
+  primaryHover: '#a050f0',
+  secondary: '#03dac6',
+  textPrimary: '#e0e0e0',
+  textSecondary: '#a0a0a0',
+  border: '#333333',
+  aiText: '#ff79c6',
+  humanText: '#50fa7b',
+};
+
+// Objek 'styles' sekarang menggunakan konstanta 'colors' yang sudah didefinisikan di atas
 const styles = {
-  colors: {
-    background: '#121212',
-    surface: '#1e1e1e',
-    primary: '#bb86fc',
-    primaryHover: '#a050f0',
-    secondary: '#03dac6',
-    textPrimary: '#e0e0e0',
-    textSecondary: '#a0a0a0',
-    border: '#333333',
-    aiText: '#ff79c6',
-    humanText: '#50fa7b',
-  },
   container: {
     display: 'flex',
     flexDirection: 'row',
@@ -220,22 +214,22 @@ const styles = {
   title: {
     fontSize: '2.8em',
     fontWeight: 700,
-    color: styles.colors.primary,
+    color: colors.primary,
     margin: '0 0 10px 0',
     letterSpacing: '-1px',
   },
   subtitle: {
     fontSize: '1.1em',
-    color: styles.colors.textSecondary,
+    color: colors.textSecondary,
     margin: 0,
     maxWidth: '500px',
     margin: '0 auto',
   },
   inputSection: {
     padding: '25px',
-    backgroundColor: styles.colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: '12px',
-    border: `1px solid ${styles.colors.border}`,
+    border: `1px solid ${colors.border}`,
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
   },
   textarea: {
@@ -243,17 +237,17 @@ const styles = {
     padding: '15px',
     fontSize: '1em',
     borderRadius: 8,
-    border: `1px solid ${styles.colors.border}`,
+    border: `1px solid ${colors.border}`,
     marginBottom: '15px',
     resize: 'vertical',
     backgroundColor: '#252525',
-    color: styles.colors.textPrimary,
+    color: colors.textPrimary,
     fontFamily: "'Poppins', sans-serif",
     transition: 'border-color 0.3s, box-shadow 0.3s',
   },
   button: {
     width: '100%',
-    background: `linear-gradient(90deg, ${styles.colors.primary}, ${styles.colors.secondary})`,
+    background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`,
     color: '#000',
     padding: '12px 20px',
     fontSize: '1.1em',
@@ -274,7 +268,7 @@ const styles = {
   },
   loader: {
       border: '4px solid rgba(255, 255, 255, 0.2)',
-      borderTop: `4px solid ${styles.colors.primary}`,
+      borderTop: `4px solid ${colors.primary}`,
       borderRadius: '50%',
       width: '40px',
       height: '40px',
@@ -291,8 +285,8 @@ const styles = {
   sectionTitle: {
     fontSize: '1.5em',
     fontWeight: 600,
-    color: styles.colors.textPrimary,
-    borderBottom: `2px solid ${styles.colors.primary}`,
+    color: colors.textPrimary,
+    borderBottom: `2px solid ${colors.primary}`,
     paddingBottom: '8px',
     marginBottom: '20px',
   },
@@ -301,7 +295,7 @@ const styles = {
     gap: 20,
     alignItems: 'center',
     padding: '15px',
-    border: `1px solid ${styles.colors.border}`,
+    border: `1px solid ${colors.border}`,
     borderRadius: 10,
     marginBottom: 12,
     backgroundColor: 'rgba(30, 30, 30, 0.7)',
@@ -311,14 +305,14 @@ const styles = {
     width: 65,
     height: 65,
     borderRadius: '50%',
-    background: `radial-gradient(closest-side, ${styles.colors.surface} 79%, transparent 80% 100%), conic-gradient(${
-      score > 0.5 ? styles.colors.aiText : styles.colors.humanText
-    } ${score * 100}%, ${styles.colors.border} 0)`,
+    background: `radial-gradient(closest-side, ${colors.surface} 79%, transparent 80% 100%), conic-gradient(${
+      score > 0.5 ? colors.aiText : colors.humanText
+    } ${score * 100}%, ${colors.border} 0)`,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontWeight: 'bold',
-    color: score > 0.5 ? styles.colors.aiText : styles.colors.humanText,
+    color: score > 0.5 ? colors.aiText : colors.humanText,
     flexShrink: 0,
   }),
   scoreText: {
@@ -329,15 +323,15 @@ const styles = {
   },
   resultSentence: {
     margin: 0,
-    color: styles.colors.textSecondary,
+    color: colors.textSecondary,
   },
   resultStatus: {
     margin: '8px 0 0',
     fontSize: '1.1em',
     fontWeight: '600',
   },
-  aiLabel: { color: styles.colors.aiText },
-  humanLabel: { color: styles.colors.humanText },
+  aiLabel: { color: colors.aiText },
+  humanLabel: { color: colors.humanText },
   leaderboardContainer: {
     display: 'flex',
     flexDirection: 'column',
@@ -347,15 +341,15 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     padding: '10px',
-    backgroundColor: styles.colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: '8px',
-    border: `1px solid ${styles.colors.border}`,
+    border: `1px solid ${colors.border}`,
     transition: 'background-color 0.2s',
   },
   leaderboardRank: {
     fontSize: '1.2em',
     fontWeight: '700',
-    color: styles.colors.primary,
+    color: colors.primary,
     width: '30px',
   },
   leaderboardAvatar: {
@@ -369,11 +363,11 @@ const styles = {
   leaderboardName: {
     margin: 0,
     fontWeight: 600,
-    color: styles.colors.textPrimary,
+    color: colors.textPrimary,
   },
   leaderboardDetections: {
     margin: 0,
     fontSize: '0.9em',
-    color: styles.colors.textSecondary,
+    color: colors.textSecondary,
   },
 };
