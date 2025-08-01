@@ -1,7 +1,33 @@
-import { useState } from "react";
-import Head from "next/head"; // Impor Head untuk tag meta
+import { useState, useEffect } from "react";
+import Head from "next/head";
+
+// Custom Hook untuk mendeteksi mode desktop
+const useIsDesktop = (breakpoint = 1024) => {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    // Fungsi ini akan dijalankan hanya di sisi client
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth > breakpoint);
+    };
+
+    // Panggil sekali saat komponen dimuat
+    handleResize();
+
+    // Tambahkan event listener untuk memantau perubahan ukuran window
+    window.addEventListener("resize", handleResize);
+
+    // Hapus event listener saat komponen di-unmount
+    return () => window.removeEventListener("resize", handleResize);
+  }, [breakpoint]);
+
+  return isDesktop;
+};
+
 
 export default function Home() {
+  const isDesktop = useIsDesktop(); // Panggil hook di sini
+
   // State untuk fungsionalitas inti
   const [text, setText] = useState("");
   const [result, setResult] = useState([]);
@@ -28,8 +54,6 @@ export default function Home() {
     setResult([]);
 
     try {
-      // Ganti bagian ini dengan fetch API asli Anda
-      // Simulasi API call untuk demonstrasi
       await new Promise(resolve => setTimeout(resolve, 1500));
       const mockResult = text.split('.').filter(s => s.trim() !== '').map((s, i) => ({
         no: i + 1,
@@ -46,7 +70,6 @@ export default function Home() {
     }
   };
   
-  // Gaya Global (diterapkan melalui komponen Head)
   const GlobalStyles = `
     body {
       background-color: ${colors.background};
@@ -55,35 +78,41 @@ export default function Home() {
       font-family: 'Poppins', sans-serif;
       overflow-x: hidden;
     }
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: ${colors.background};
-    }
-    ::-webkit-scrollbar-thumb {
-      background: ${colors.primary};
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: ${colors.primaryHover};
-    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: ${colors.background}; }
+    ::-webkit-scrollbar-thumb { background: ${colors.primary}; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: ${colors.primaryHover}; }
   `;
 
+  // Tampilan fallback jika bukan desktop
+  if (!isDesktop) {
+    return (
+      <>
+        <Head>
+          <title>Mode Desktop Diperlukan</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <style>{GlobalStyles}</style>
+        </Head>
+        <div style={styles.mobileFallbackContainer}>
+            <span style={styles.mobileFallbackIcon}>🖥️</span>
+            <h1 style={styles.mobileFallbackTitle}>Tampilan Desktop Diperlukan</h1>
+            <p style={styles.mobileFallbackText}>
+              Aplikasi ini dioptimalkan untuk pengalaman desktop. Silakan buka di perangkat dengan layar yang lebih lebar.
+            </p>
+        </div>
+      </>
+    );
+  }
+
+  // Tampilan utama aplikasi jika desktop
   return (
     <>
       <Head>
         <title>🧠 AI Text Detector Pro</title>
-        {/* Mencegah zoom pada perangkat mobile */}
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-        />
-        {/* Impor font dari Google Fonts */}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
-        {/* Menerapkan gaya global */}
         <style>{GlobalStyles}</style>
       </Head>
 
@@ -169,7 +198,6 @@ export default function Home() {
 
 // --- Styles Object ---
 
-// ✅ PERBAIKAN: Pisahkan 'colors' menjadi konstanta sendiri untuk menghindari ReferenceError
 const colors = {
   background: '#121212',
   surface: '#1e1e1e',
@@ -183,8 +211,35 @@ const colors = {
   humanText: '#50fa7b',
 };
 
-// Objek 'styles' sekarang menggunakan konstanta 'colors' yang sudah didefinisikan di atas
 const styles = {
+  // Gaya untuk Tampilan Fallback Mobile
+  mobileFallbackContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100vh',
+    textAlign: 'center',
+    padding: '20px',
+    backgroundColor: colors.background,
+  },
+  mobileFallbackIcon: {
+    fontSize: '5em',
+    marginBottom: '20px',
+  },
+  mobileFallbackTitle: {
+    color: colors.primary,
+    fontSize: '2em',
+    margin: '0 0 10px 0',
+  },
+  mobileFallbackText: {
+    color: colors.textSecondary,
+    fontSize: '1.1em',
+    maxWidth: '400px',
+    lineHeight: 1.5,
+  },
+
+  // Gaya Aplikasi Utama (Desktop)
   container: {
     display: 'flex',
     flexDirection: 'row',
@@ -208,9 +263,7 @@ const styles = {
     backdropFilter: 'blur(10px)',
     height: 'fit-content',
   },
-  header: {
-    textAlign: 'center',
-  },
+  header: { textAlign: 'center' },
   title: {
     fontSize: '2.8em',
     fontWeight: 700,
@@ -275,13 +328,7 @@ const styles = {
       animation: 'spin 1s linear infinite',
       margin: '20px auto',
   },
-  '@keyframes spin': {
-      '0%': { transform: 'rotate(0deg)' },
-      '100%': { transform: 'rotate(360deg)' },
-  },
-  results: {
-    marginTop: '10px',
-  },
+  results: { marginTop: '10px' },
   sectionTitle: {
     fontSize: '1.5em',
     fontWeight: 600,
@@ -299,7 +346,6 @@ const styles = {
     borderRadius: 10,
     marginBottom: 12,
     backgroundColor: 'rgba(30, 30, 30, 0.7)',
-    transition: 'transform 0.2s, box-shadow 0.2s',
   },
   scoreCircle: (score) => ({
     width: 65,
@@ -315,16 +361,9 @@ const styles = {
     color: score > 0.5 ? colors.aiText : colors.humanText,
     flexShrink: 0,
   }),
-  scoreText: {
-    fontSize: '1em',
-  },
-  resultTextContainer: {
-    flex: 1,
-  },
-  resultSentence: {
-    margin: 0,
-    color: colors.textSecondary,
-  },
+  scoreText: { fontSize: '1em' },
+  resultTextContainer: { flex: 1 },
+  resultSentence: { margin: 0, color: colors.textSecondary },
   resultStatus: {
     margin: '8px 0 0',
     fontSize: '1.1em',
@@ -344,7 +383,6 @@ const styles = {
     backgroundColor: colors.surface,
     borderRadius: '8px',
     border: `1px solid ${colors.border}`,
-    transition: 'background-color 0.2s',
   },
   leaderboardRank: {
     fontSize: '1.2em',
@@ -352,19 +390,9 @@ const styles = {
     color: colors.primary,
     width: '30px',
   },
-  leaderboardAvatar: {
-    fontSize: '1.5em',
-    marginRight: '12px',
-  },
-  leaderboardUser: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  leaderboardName: {
-    margin: 0,
-    fontWeight: 600,
-    color: colors.textPrimary,
-  },
+  leaderboardAvatar: { fontSize: '1.5em', marginRight: '12px' },
+  leaderboardUser: { display: 'flex', flexDirection: 'column' },
+  leaderboardName: { margin: 0, fontWeight: 600, color: colors.textPrimary },
   leaderboardDetections: {
     margin: 0,
     fontSize: '0.9em',
